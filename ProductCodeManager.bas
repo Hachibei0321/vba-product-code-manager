@@ -135,6 +135,7 @@ Sub CopyWorksheets(sourceWorkbook As Workbook, targetWorkbook As Workbook)
     Dim newSheet As Worksheet        ' 新しくできたシート
     Dim sheetNames As Variant        ' コピーするシート名の一覧
     Dim i As Integer                 ' ループ用のカウンタ
+    Dim currentSheetName As String   ' 現在処理中のシート名（型変換用）
     
     ' エラーが起きても処理を続ける
     On Error GoTo WorksheetCopyError
@@ -145,16 +146,19 @@ Sub CopyWorksheets(sourceWorkbook As Workbook, targetWorkbook As Workbook)
     ' 各シートをコピー（一つずつ処理していくで〜）
     For i = LBound(sheetNames) To UBound(sheetNames)
         
+        ' 配列の要素をString型に変換（これでエラーが出んようになるで！）
+        currentSheetName = CStr(sheetNames(i))
+        
         ' コピー元のシートが存在するかチェック
-        If DoesWorksheetExist(sourceWorkbook, sheetNames(i)) Then
+        If DoesWorksheetExist(sourceWorkbook, currentSheetName) Then
             
             ' シートをコピーする準備
-            Set sourceSheet = sourceWorkbook.Worksheets(sheetNames(i))
+            Set sourceSheet = sourceWorkbook.Worksheets(currentSheetName)
             
             ' コピー先に同名シートがあれば削除（古いのは消すで）
-            If DoesWorksheetExist(targetWorkbook, sheetNames(i)) Then
+            If DoesWorksheetExist(targetWorkbook, currentSheetName) Then
                 Application.DisplayAlerts = False   ' 確認ダイアログを出さない
-                targetWorkbook.Worksheets(sheetNames(i)).Delete
+                targetWorkbook.Worksheets(currentSheetName).Delete
                 Application.DisplayAlerts = True    ' 元に戻す
             End If
             
@@ -163,14 +167,14 @@ Sub CopyWorksheets(sourceWorkbook As Workbook, targetWorkbook As Workbook)
             
             ' コピーしたシートの名前を設定
             Set newSheet = targetWorkbook.Worksheets(targetWorkbook.Worksheets.Count)
-            newSheet.Name = sheetNames(i)
+            newSheet.Name = currentSheetName
             
             ' コピー完了をログに出力（デバッグ用やね）
-            Debug.Print sheetNames(i) & " をコピーしたで〜"
+            Debug.Print currentSheetName & " をコピーしたで〜"
             
         Else
             ' シートが見つからへん時のお知らせ
-            MsgBox sheetNames(i) & " が見つからへんわ〜", vbExclamation, "シートなし"
+            MsgBox currentSheetName & " が見つからへんわ〜", vbExclamation, "シートなし"
         End If
         
     Next i
